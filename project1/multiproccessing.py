@@ -8,12 +8,7 @@ def set_low_priority():
     """Set the process priority to low."""
     p = psutil.Process(os.getpid())
     try:
-        if os.name == 'nt':
-            # On Windows
-            p.nice(psutil.IDLE_PRIORITY_CLASS)
-        else:
-            # On Unix/Linux
-            p.nice(10)  # Increase niceness to lower priority
+        p.nice(10)  # Increase niceness to lower priority
     except psutil.AccessDenied:
         print("Access Denied when trying to set low priority.")
 
@@ -21,12 +16,8 @@ def set_high_priority():
     """Set the process priority to high."""
     p = psutil.Process(os.getpid())
     try:
-        if os.name == 'nt':
-            # On Windows
-            p.nice(psutil.HIGH_PRIORITY_CLASS)
-        else:
-            # On Unix/Linux
-            p.nice(-10)  # Decrease niceness to increase priority
+        # On Unix/Linux
+        p.nice(-10)  # Decrease niceness to increase priority
     except psutil.AccessDenied:
         print("Access Denied when trying to set high priority.")
 
@@ -39,7 +30,7 @@ def matrix_multiplication(name, priority):
     p = psutil.Process(os.getpid())
     print(f"{name} started with priority {p.nice()}")
 
-    size = 5000  # Adjust size to make the computation take ~30 seconds
+    size = 5000
     A = np.random.rand(size, size)
     B = np.random.rand(size, size)
     start_time = time.time()
@@ -56,7 +47,7 @@ def eigenvalue_computation(name, priority):
     p = psutil.Process(os.getpid())
     print(f"{name} started with priority {p.nice()}")
 
-    size = 3000  # Adjust size to make the computation take ~30 seconds
+    size = 3000
     A = np.random.rand(size, size)
     start_time = time.time()
     eigenvalues = np.linalg.eigvals(A)
@@ -72,7 +63,7 @@ def singular_value_decomposition(name, priority):
     p = psutil.Process(os.getpid())
     print(f"{name} started with priority {p.nice()}")
 
-    size = 2000  # Adjust size to make the computation take ~30 seconds
+    size = 2000
     A = np.random.rand(size, size)
     start_time = time.time()
     U, S, Vt = np.linalg.svd(A, full_matrices=False)
