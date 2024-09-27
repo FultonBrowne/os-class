@@ -1,76 +1,109 @@
 import multiprocessing
 import numpy as np
 import time
+import os
+import psutil
 
-def worker_process(name, queue):
-    """Function run by worker processes to perform complex NumPy tasks."""
-    start_time = time.time()
-    matrix_size = 5000  # Large size for increased computational complexity
-
-    # Generate two large random matrices
-    A = np.random.rand(matrix_size, matrix_size)
-    B = np.random.rand(matrix_size, matrix_size)
-
-    # Perform matrix multiplication
-    C = np.dot(A, B)
-
-    # Compute eigenvalues of the result
-    eigenvalues = np.linalg.eigvals(C)
-
-    # Compute matrix inversion (may be computationally intensive)
+def set_low_priority():
+    """Set the process priority to low."""
+    p = psutil.Process(os.getpid())
     try:
-        C_inv = np.linalg.inv(C)
-    except np.linalg.LinAlgError:
-        C_inv = None  # Matrix is singular and cannot be inverted
+        if os.name == 'nt':
+            # On Windows
+            p.nice(psutil.IDLE_PRIORITY_CLASS)
+        else:
+            # On Unix/Linux
+            p.nice(10)  # Increase niceness to lower priority
+    except psutil.AccessDenied:
+        print("Access Denied when trying to set low priority.")
 
-    # Perform Singular Value Decomposition
-    U, s, Vt = np.linalg.svd(C, full_matrices=False)
+def set_high_priority():
+    """Set the process priority to high."""
+    p = psutil.Process(os.getpid())
+    try:
+        if os.name == 'nt':
+            # On Windows
+            p.nice(psutil.HIGH_PRIORITY_CLASS)
+        else:
+            # On Unix/Linux
+            p.nice(-10)  # Decrease niceness to increase priority
+    except psutil.AccessDenied:
+        print("Access Denied when trying to set high priority.")
 
-    # Compute determinant (may be zero for singular matrices)
-    determinant = np.linalg.det(C)
+def matrix_multiplication(name, priority):
+    """Perform a heavy matrix multiplication task."""
+    if priority == 'low':
+        set_low_priority()
+    else:
+        set_high_priority()
+    p = psutil.Process(os.getpid())
+    print(f"{name} started with priority {p.nice()}")
 
+    size = 5000  # Adjust size to make the computation take ~30 seconds
+    A = np.random.rand(size, size)
+    B = np.random.rand(size, size)
+    start_time = time.time()
+    C = np.dot(A, B)
     end_time = time.time()
-    elapsed_time = end_time - start_time
+    print(f"{name} finished in {end_time - start_time:.2f} seconds.")
 
-    # Send the results back to the main process
-    msg = (
-        f"{name} Results:\n"
-        f"- Sum of eigenvalues: {np.sum(eigenvalues):.2e}\n"
-        f"- Determinant: {determinant:.2e}\n"
-        f"- Sum of singular values: {np.sum(s):.2e}\n"
-        f"- Inversion {'succeeded' if C_inv is not None else 'failed (singular matrix)'}\n"
-        f"- Elapsed time: {elapsed_time:.2f} seconds"
-    )
-    queue.put(msg)
-    queue.put(f"{name} done")
+def eigenvalue_computation(name, priority):
+    """Compute the eigenvalues of a large random matrix."""
+    if priority == 'low':
+        set_low_priority()
+    else:
+        set_high_priority()
+    p = psutil.Process(os.getpid())
+    print(f"{name} started with priority {p.nice()}")
+
+    size = 3000  # Adjust size to make the computation take ~30 seconds
+    A = np.random.rand(size, size)
+    start_time = time.time()
+    eigenvalues = np.linalg.eigvals(A)
+    end_time = time.time()
+    print(f"{name} finished in {end_time - start_time:.2f} seconds.")
+
+def singular_value_decomposition(name, priority):
+    """Perform SVD on a large random matrix."""
+    if priority == 'low':
+        set_low_priority()
+    else:
+        set_high_priority()
+    p = psutil.Process(os.getpid())
+    print(f"{name} started with priority {p.nice()}")
+
+    size = 2000  # Adjust size to make the computation take ~30 seconds
+    A = np.random.rand(size, size)
+    start_time = time.time()
+    U, S, Vt = np.linalg.svd(A, full_matrices=False)
+    end_time = time.time()
+    print(f"{name} finished in {end_time - start_time:.2f} seconds.")
 
 if __name__ == "__main__":
-    # Create a queue to share messages between processes
-    message_queue = multiprocessing.Queue()
+    # Define the tasks
+    tasks = [
+        (matrix_multiplication, "Matrix Multiplication Task 1", 'low'),
+        (eigenvalue_computation, "Eigenvalue Computation Task 1", 'low'),
+        (singular_value_decomposition, "SVD Task 1", 'low'),
+        (matrix_multiplication, "Matrix Multiplication Task 2", 'high'),
+        (eigenvalue_computation, "Eigenvalue Computation Task 2", 'high'),
+        (singular_value_decomposition, "SVD Task 2", 'high'),
+    ]
 
-    # Number of worker processes
-    num_processes = 3
-
-    # Create and start worker processes
+    # Create processes
     processes = []
-    for i in range(num_processes):
-        p = multiprocessing.Process(
-            target=worker_process,
-            args=(f"Process-{i+1}", message_queue)
-        )
+    for func, name, priority in tasks:
+        p = multiprocessing.Process(target=func, args=(name, priority))
         processes.append(p)
+
+    # Start processes
+    for p in processes:
         p.start()
 
-    # Collect messages from workers
-    finished_processes = 0
-    while finished_processes < num_processes:
-        msg = message_queue.get()
-        print(f"\nMain process received:\n{msg}")
-        if "done" in msg:
-            finished_processes += 1
-
-    # Wait for all worker processes to finish
+    # Monitor processes
+    total = len(processes)
+    # Wait for all processes to finish
     for p in processes:
         p.join()
 
-    print("\nAll worker processes have finished.")
+    print("All processes completed.")
