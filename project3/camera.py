@@ -58,6 +58,16 @@ while cap.isOpened():
         if key == ord('q'):
             print("Detected 'q' key press. Exiting loop.")
             break
+        if key == ord('s'):
+            print("Detected 's' key press. Saving frame to disk.")
+            filename = f"frame_{frame_count}.png"
+            cv2.imwrite(filename, frame)
+            print(f"Frame saved to {filename}.")
+            # now just show the frame
+            cv2.imshow('Webcam', frame)
+            #sleep for 2 seconds
+            time.sleep(2)
+
     else:
         print("Failed to read frame from webcam.")
         # Possible reasons:
