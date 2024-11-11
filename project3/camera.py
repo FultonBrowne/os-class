@@ -1,3 +1,7 @@
+# https://pygame-gui.readthedocs.io/en/latest/quick_start.html
+# https://www.tutorialspoint.com/pygame/pygame_using_camera_module.htm
+# https://pygame-gui.readthedocs.io/en/latest/quick_start.html
+
 import pygame  # Pygame is a set of Python modules designed for writing games.
 import pygame.camera  # Provides access to camera hardware via Pygame.
 import pygame_gui  # A GUI module for Pygame applications.
