@@ -20,7 +20,6 @@ for i in range(5):
     # Add the instance to the list
     data_list.append(os_data)
 
-# creat a new file to store the data
     f = open('data.json', 'r')
     data = json.load(f)
     f.close()
