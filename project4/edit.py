@@ -5,19 +5,19 @@ data_list = []
 
 # Generate ten instances with sample data
 for i in range(5):
-    fname = f'FirstName{i+1}'
-    lname = f'LastName{i+1}'
-    dob = f'01/{i+1:02d}/1990'  # Dates from 01/01/1990 to 01/10/1990
-    phone = f'555-123-45{i+1:02d}'  # Phone numbers like 555-123-4501
-    street_address = f'{100 + i} Main St'
-    city = 'Anycdcsdctown'
-    state = 'State'
-    zip_code = f'dcsdc1234{i+1:02d}'  # Zip codes like 1234501
+    fname = ["Alice", "Bob", "Charlie", "Diana", "Edward"][i]
+    lname = ["Smith", "Johnson", "Brown", "Davis", "Miller"][i]
+    dob = f'1990-0{i+1}-15'  # Birthdates spread out through the first 5 months of 1990
+    phone = f'555-456-{7000 + i}'  # Phone numbers like 555-456-7000
+    street_address = [f'101 Oak St', f'202 Maple Ave', f'303 Pine Dr', f'404 Birch Ln', f'505 Cedar Ct'][i]
+    city = ["Springfield", "Riverside", "Fairview", "Greenville", "Madison"][i]
+    state = ["CA", "NY", "TX", "FL", "WA"][i]
+    zip_code = f'{90001 + i}'  # Zip codes like 90001, 90002, ...
+
     # Create a new instance of OSDateType with the sample data
     os_data = OSDateType(fname, lname, dob, phone, street_address, city, state, zip_code)
     # Add the instance to the list
     data_list.append(os_data)
-
 # creat a new file to store the data
 with open('data.txt', 'a') as f:
     # Write the data from the instances to the file
